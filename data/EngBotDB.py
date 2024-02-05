@@ -9,29 +9,17 @@ async def DB():
                 username TEXT,
                 first_name TEXT,
                 last_name TEXT,
-                score INTEGER)''')
-        await db.execute('''CREATE TABLE IF NOT EXISTS variables (
-                        user_id TEXT PRIMARY KEY NOT NULL UNIQUE,
-                        other_flag TEXT,
-                        voc_flag TEXT,
-                        tr_flag TEXT,
-                        call_d TEXT, 
-                        word_eng TEXT,
-                        quiz_flag TEXT,
-                        quiz_quest TEXT,
-                        win_streak INTEGER,
-                        words_flag TEXT)''')
+                score INTEGER,
+                tr_flag)''')
         await db.commit()
 
 
-async def DB_add(user_id, username, first_name, last_name, score=0, other_flag="0", voc_flag="0", tr_flag="0", word_eng=None, quiz_flag="0", quiz_quest=None, win_streak=0, words_flag="0"):
+async def DB_add(user_id, username, first_name, last_name, score=0, tr_flag="0"):
     async with aiosqlite.connect('data/EngBotDb.db') as db:
         cursor = await db.execute('SELECT * FROM users WHERE user_id = ?',(user_id,))
         if not await cursor.fetchone():
-            await db.execute('INSERT INTO users (user_id, username, first_name, last_name, score) VALUES(?,?,?,?,?)', (user_id, username, first_name, last_name, score))
-            await db.execute('INSERT INTO variables (user_id, other_flag, voc_flag, tr_flag, word_eng, quiz_flag, quiz_quest, win_streak, words_flag) VALUES(?,?,?,?,?,?,?,?,?)',(user_id, other_flag, voc_flag, tr_flag, word_eng, quiz_flag, quiz_quest, win_streak, words_flag))
+            await db.execute('INSERT INTO users (user_id, username, first_name, last_name, score, tr_flag) VALUES(?,?,?,?,?,?)', (user_id, username, first_name, last_name, score, tr_flag))
         else:
-            await db.execute('UPDATE variables SET other_flag = "0", voc_flag = "0", call_d = NULL, word_eng = NULL, quiz_flag="0", quiz_quest=NULL, win_streak="0", words_flag="0" WHERE user_id = ?',(user_id,))
             print('yge e')
         await db.commit()
 
@@ -48,16 +36,9 @@ async def DB_score(user_id, score):
         await db.commit()
 
 
-async def DB_get_score(user_id):
-    async with aiosqlite.connect('data/EngBotDb.db') as db:
-        cursor = await db.execute('SELECT score FROM users WHERE user_id = ?', (user_id,))
-        score = await cursor.fetchone()
-        return score[0]
-
-
 async def DB_leaderboard():
     async with aiosqlite.connect("data/EngBotDb.db") as db:
-        cursor = await db.execute('SELECT username, first_name, last_name, score FROM users ORDER BY score DESC')
+        cursor = await db.execute('SELECT username, first_name, last_name, score FROM users ORDER BY score DESC LIMIT 10')
         board = await cursor.fetchall()
         result = ''
         smiles = ["🥇","🥈","🥉"]
@@ -75,42 +56,22 @@ async def DB_leaderboard():
         return result
 
 
-async def DB_var_select(flag, user_id):
+async def DB_select(flag, user_id):
     async with aiosqlite.connect("data/EngBotDb.db") as db:
-        a = await db.execute(f'SELECT {flag} FROM variables WHERE user_id = ?',(user_id,))
+        a = await db.execute(f'SELECT {flag} FROM users WHERE user_id = ?',(user_id,))
         a = await a.fetchone()
         return a[0]
 
 
-async def DB_var_insert(flag, number, user_id):
+async def DB_insert(flag, number, user_id):
     async with aiosqlite.connect("data/EngBotDb.db") as db:
-        await db.execute(f'UPDATE variables SET {flag} = ? WHERE user_id = ?',(number, user_id))
+        await db.execute(f'UPDATE users SET {flag} = ? WHERE user_id = ?',(number, user_id))
         await db.commit()
 
 
-async def DB_var_ws(flag, user_id):
-    async with aiosqlite.connect("data/EngBotDb.db") as db:
-        if flag == "correct":
-            a = await db.execute('SELECT win_streak FROM variables WHERE user_id = ?', (user_id,))
-            a = await a.fetchone()
-            a = a[0] + 1
-            if a == 5:
-                await db.execute('UPDATE variables SET win_streak = 0 WHERE user_id = ?', (user_id,))
-                await db.commit()
-                return True
-            else:
-                await db.execute('UPDATE variables SET win_streak = ? WHERE user_id = ?',(a, user_id))
-                await db.commit()
-                return False
-
-        elif flag == "incorrect":
-            await db.execute('UPDATE variables SET win_streak = 0 WHERE user_id = ?', (user_id,))
-            await db.commit()
-
-
 async def main():
-    # pass
-    await DB()
+    pass
+    # await DB()
 
 
 if __name__ == "__main__":

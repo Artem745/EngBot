@@ -25,7 +25,7 @@ class vFSM(StatesGroup):
 @router.message(StateFilter(None), F.text.lower().in_(["vocabulary","/vocabulary"]))
 async def voc_diff(message: Message):
     global kb
-    await message.answer("Let's get started")#, reply_markup=ReplyKeyboardRemove())
+    await message.answer("Let's get started")  #, reply_markup=ReplyKeyboardRemove())
     await asyncio.sleep(0.1)
     kb = await message.answer("First, choose the difficulty🤔", reply_markup=inline.diff_kb)
 
@@ -51,7 +51,7 @@ async def voc(message: Message, state: FSMContext):
     print(msg)
 
     if msg == "❌":
-        sc = await EngBotDB.DB_get_score(message.from_user.id)
+        sc = await EngBotDB.DB_select("score", message.from_user.id)
         await message.answer(f'Your score: <b>{sc}</b>')
         await message.answer('Successfully stopped, come back soon🤗', reply_markup=reply.main_kb)
         await state.set_state(state=None)
@@ -64,7 +64,7 @@ async def voc(message: Message, state: FSMContext):
         except KeyError:
             await state.update_data(win_streak_v=0)
             ws = 0
-        tr_flag = await EngBotDB.DB_var_select("tr_flag", message.from_user.id)
+        tr_flag = await EngBotDB.DB_select("tr_flag", message.from_user.id)
 
         if diff == "easy":
             ball = 1

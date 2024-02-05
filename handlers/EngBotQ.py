@@ -34,7 +34,7 @@ async def quiz(message: Message, state: FSMContext):
     print(msg)
 
     if msg == "❌":
-        sc = await EngBotDB.DB_get_score(message.from_user.id)
+        sc = await EngBotDB.DB_select("score", message.from_user.id)
         await message.answer(f'Your score: <b>{sc}</b>')
         await message.answer('Successfully stopped, come back soon🤗', reply_markup=reply.main_kb)
         await state.set_state(state=None)
@@ -44,11 +44,10 @@ async def quiz(message: Message, state: FSMContext):
         quiz_quest = user_data["quiz"]
         try:
             ws = user_data["win_streak_q"]
-            print("ws norm")
         except KeyError:
             await state.update_data(win_streak_q=0)
             ws = 0
-        tr_flag = await EngBotDB.DB_var_select("tr_flag", message.from_user.id)
+        tr_flag = await EngBotDB.DB_select("tr_flag", message.from_user.id)
 
         quiz_answer = quiz_dict[quiz_quest][-1]
         print(quiz_answer)
