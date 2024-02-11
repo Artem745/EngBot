@@ -55,7 +55,7 @@ async def quiz(message: Message, state: FSMContext):
         if msg == quiz_answer:
             await message.answer("Correct✅")
             if ws + 1 == 5:
-                b = await bonus(message.from_user.id, message.bot)
+                b = await bonus(message.from_user.id, message.bot, qFSM.quiz, state)
                 await EngBotDB.DB_score(message.from_user.id, 2 + b)
                 await state.update_data(win_streak_q=0)
             else:

@@ -44,12 +44,12 @@ async def DB_leaderboard():
         smiles = ["🥇","🥈","🥉"]
         for index, user in enumerate(board):
             if not user[0] and not user[2]:
-                result += f"#{index + 1} {user[1]}. Score: {user[3]}"
+                result += f"#<b>{index + 1}</b> {user[1]}. Score: {user[3]}"
             elif not user[2]:
-                result += f"#{index + 1} {user[1]} @{user[0]}. Score: {user[3]}"
+                result += f"#<b>{index + 1}</b> {user[1]} @{user[0]}. Score: {user[3]}"
             elif not user[0]:
-                result += f"#{index + 1} {user[1]}. Score: {user[3]}\n\n"
-            else: result += f"#{index+1} {user[1]} {user[2]} @{user[0]}. Score: {user[3]}"
+                result += f"#<b>{index + 1}</b> {user[1]}. Score: {user[3]}\n\n"
+            else: result += f"#<b>{index+1}</b> {user[1]} {user[2]} @{user[0]}. Score: {user[3]}"
             if len(smiles) > index:
                 result += f"{smiles[index]}\n\n"
             else: result += "\n\n"

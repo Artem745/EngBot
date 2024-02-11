@@ -15,12 +15,15 @@ router = Router()
 class CommandsFSM(StatesGroup):
     other = State()
     mot = State()
+    words_game = State()
+    used_words = State()
+    bonus = State()
 
 
 @router.message(Command("start"))
 async def cmd_start(message: Message, state: FSMContext):
     st = await state.get_state()
-    if st != CommandsFSM.mot:
+    if st != CommandsFSM.mot and st != CommandsFSM.bonus:
         await message.answer(f"Welcome, <b>{message.from_user.first_name}</b>", reply_markup=reply.main_kb)
         await EngBotDB.DB_add(message.from_user.id, message.from_user.username, message.from_user.first_name,
                               message.from_user.last_name)
@@ -79,17 +82,8 @@ async def tr(message: Message):
         await EngBotDB.DB_insert("tr_flag", "0", message.from_user.id)
 
 
-@router.message(F.text.lower() == "word chain game")
-async def words(message: Message):
-    from data.materials import voc_dict
-    if await EngBotDB.DB_select("words_flag", message.from_user.id) == "0":
-        await EngBotDB.DB_insert("words_flag", "1", message.from_user.id)
-        word = random.choice(list(voc_dict["mixed"].keys()))
-        await message.answer(word)
-        await EngBotDB.DB_insert("word_eng", word, message.from_user.id)
-
-
-async def bonus(chat_id, bot):
+async def bonus(chat_id, bot, vq, state):
+    await state.set_state(CommandsFSM.bonus)
     await bot.send_message(chat_id, "Good job! You answered correctly <b>5</b> times in a row, so here's your <b>bonus</b>")
     result: Message = await bot.send_dice(chat_id=chat_id, emoji=random.choice(["🎲","🎯","🏀","⚽","🎳"]))
     point = result.dice.value
@@ -99,6 +93,34 @@ async def bonus(chat_id, bot):
     else:
         await bot.send_message(chat_id, f"+{str(result.dice.value)} points")
     await asyncio.sleep(1)
+    await state.set_state(vq)
     return point
 
 
+@router.message(CommandsFSM.other, F.text.lower() == "word chain game")
+async def words(message: Message, state: FSMContext):
+    from data.materials import voc_dict
+    await state.set_state(CommandsFSM.words_game)
+    word = random.choice(list(voc_dict["mixed"].keys()))
+    await state.update_data(words_game=word)
+    await message.answer(word)
+    await state.update_data(used_words=[word.lower()])
+
+
+@router.message(CommandsFSM.words_game, F.text)
+async def words_game(message: Message, state: FSMContext):
+    from data.materials import voc_dict
+    user_data = await state.get_data()
+    used_words = user_data["used_words"]
+    print(used_words)
+    msg = message.text.lower()
+    if msg not in used_words and user_data["words_game"][-1] == msg[0]:
+        await message.answer("norm")
+        used_words.append(msg)
+    else:
+        await message.answer("bullshit")
+    word = random.choice(list(voc_dict["mixed"].keys()))
+    await message.answer(word)
+    await state.update_data(words_game=word)
+    used_words.append(word.lower())
+    await state.update_data(used_words=used_words)

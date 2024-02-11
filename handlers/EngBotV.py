@@ -12,6 +12,8 @@ from data.materials import voc_dict
 
 router = Router()
 
+mixed_dict = {**voc_dict["easy"], **voc_dict["medium"], **voc_dict["hard"]}
+voc_dict["mixed"] = mixed_dict
 
 # print(len(voc_dict['easy']), len(voc_dict['medium']), len(voc_dict['hard']))
 
@@ -40,7 +42,7 @@ async def voc_diff_cb(callback: types.CallbackQuery, bot: Bot, state: FSMContext
     await asyncio.sleep(0.2)
     await state.set_state(vFSM.voc_diff)
     word_eng = random.choice(list(voc_dict[call_d].keys()))
-    await callback.message.answer(word_eng)
+    await callback.message.answer(word_eng.capitalize())
     await state.update_data(word_eng=word_eng)
 
 
@@ -89,7 +91,7 @@ async def voc(message: Message, state: FSMContext):
                 await EngBotDB.DB_score(message.from_user.id, ball)
 
                 if ws + 1 == 5:
-                    b = await bonus(message.from_user.id, message.bot)
+                    b = await bonus(message.from_user.id, message.bot, vFSM.voc_diff, state)
                     await EngBotDB.DB_score(message.from_user.id, ball + b)
                     await state.update_data(win_streak_v=0)
                 else:
@@ -108,7 +110,7 @@ async def voc(message: Message, state: FSMContext):
                 await EngBotDB.DB_score(message.from_user.id, ball)
 
                 if ws + 1 == 5:
-                    b = await bonus(message.from_user.id, message.bot)
+                    b = await bonus(message.from_user.id, message.bot, vFSM.voc_diff, state)
                     await EngBotDB.DB_score(message.from_user.id, ball + b)
                     await state.update_data(win_streak_v=0)
                 else:
@@ -124,5 +126,5 @@ async def voc(message: Message, state: FSMContext):
 
         word_eng_new = random.choice(list(voc_dict[diff].keys()))
         print(word_eng_new)
-        await message.answer(word_eng_new)
+        await message.answer(word_eng_new.capitalize())
         await state.update_data(word_eng=word_eng_new)
