@@ -68,6 +68,9 @@ voc_dict = {"easy": {"bread":"хліб","meat":["м'ясо","мясо"],"plane":
                      },
             }
 
+mixed_dict = {**voc_dict["easy"], **voc_dict["medium"], **voc_dict["hard"]}
+voc_dict["mixed"] = mixed_dict
+
 quiz_dict = {"I ______ bus on Mondays.":["'m going to work with","'m going to work by","go to work with","go to work by","go to work by"],
              "Sorry, but this chair is ______.":["me","mine","my","our","mine"],
              "A: 'How old ______?'   B: 'I ______ .'":["are you / am 20 years old.","have you / have 20 years old","are you / am 20 years.","do you have / have 20 years.","are you / am 20 years old."],
@@ -122,12 +125,12 @@ quiz_dict = {"I ______ bus on Mondays.":["'m going to work with","'m going to wo
 motivation = {
     "1": ["Nobody believes in you😣1.8", "You've lost again and again❌1.8", "The lights are cut off💡1.8",
           "But you're still looking at your dream✨1.8", "Reviewing it every day🔃1.5",
-          "and saying to yourself🧠1.5", "It's not over😵1.5", "Until🤜0.7", "I👤0.7", "WIN!👑0.7"],
+          "and saying to yourself🧠1.5", "It's not over😵1.5", "Until🤜0.7", "I👤0.7", "WIN!👑0.1"],
     "© Apollo Creed1": ["Damn, Rock, come on!2.4", "What's the matter with you?!2.2",
                         "Tomorrow.1.0", "Let's do it tomorrow.2.0", "There is no tomorrow!2.6",
                         "THERE IS NO TOMORROW!2.6", "THERE IS NO TOMORROW!2.2"],
-    "© Jordan Belfort1": ["The only thing1.8", "standing between you and your goal2.5",
-                          "is the story you keep telling yourself2.5", "as to why you can't achieve it.2.5"],
+    "© Jordan Belfort1": ["The only thing1.6", "standing between you and your goal2.3",
+                          "is the story you keep telling yourself2.3", "as to why you can't achieve it.2.0"],
     "© Sylvester Stallone1": ["Remember1.0", "the mind is your best muscle2.0", "BIG ARMS can move rocks2.5",
                               "but BIG WORDS can move mountains2.5"],
     "© Sylvester Stallone2": ["I am not the richest, smartest or most talented person in the world3.0",
@@ -143,5 +146,15 @@ motivation = {
     "© Michael Pearson1": ["If you wish to be The King of the jungle, it's not enough to act like a king.4.0",
                            "You must be The King.2.0", "And there can be no doubt.2.6",
                            "Because doubt causes chaos and one's own demise.3.0"],
-    "2": ["One day2.0","or...1.8","Day one0.1"],
+    "2": ["One day2.0", "or...1.8", "Day one0.1"],
+    "© Master Oogway1": ["Your mind is like this water, my friend.2.7",
+                       "When it is agitated, it becomes difficult to see.3.5",
+                       "But if you allow it to settle, the answer becomes clear.4.0"],
+    "© Master Oogway2": ["There are no accidents.1.8"],
+    "© Master Oogway3": ["You are too concerned with what was and what will be.3.7", "There's a saying:1.3",
+                       "Yesterday is history, tomorrow is a mystery, but today is a gift.5.0",
+                       "That is why it is called the present.3.0"],
+    "© Master Oogway4": ["One often meets his destiny on the road he takes to avoid it.3.2"]
+
+
 }

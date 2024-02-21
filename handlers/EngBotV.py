@@ -12,9 +12,6 @@ from data.materials import voc_dict
 
 router = Router()
 
-mixed_dict = {**voc_dict["easy"], **voc_dict["medium"], **voc_dict["hard"]}
-voc_dict["mixed"] = mixed_dict
-
 # print(len(voc_dict['easy']), len(voc_dict['medium']), len(voc_dict['hard']))
 
 

@@ -18,9 +18,10 @@ async def DB_add(user_id, username, first_name, last_name, score=0, tr_flag="0")
     async with aiosqlite.connect('data/EngBotDb.db') as db:
         cursor = await db.execute('SELECT * FROM users WHERE user_id = ?',(user_id,))
         if not await cursor.fetchone():
-            await db.execute('INSERT INTO users (user_id, username, first_name, last_name, score, tr_flag) VALUES(?,?,?,?,?,?)', (user_id, username, first_name, last_name, score, tr_flag))
+            await db.execute('INSERT INTO users (user_id, username, first_name, last_name, score, tr_flag) VALUES(?,?,?,?,?,?)',
+                             (user_id, username, first_name, last_name, score, tr_flag))
         else:
-            print('yge e')
+            print("already exists")
         await db.commit()
 
 

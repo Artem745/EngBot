@@ -1,6 +1,6 @@
 import asyncio
 from aiogram import Bot, Dispatcher
-from handlers import EngBotCommands, EngBotV, EngBotQ
+from handlers import EngBotCommands, EngBotV, EngBotQ, EngBotWords
 
 
 async def main():
@@ -9,7 +9,7 @@ async def main():
     bot = Bot(TOKEN, parse_mode="HTML")
     dp = Dispatcher(bot=bot)
 
-    dp.include_routers(EngBotCommands.router, EngBotV.router, EngBotQ.router)
+    dp.include_routers(EngBotCommands.router, EngBotV.router, EngBotQ.router, EngBotWords.router)
 
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)

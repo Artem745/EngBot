@@ -5,7 +5,6 @@ from aiogram.filters import Command, StateFilter
 from aiogram.types import Message
 from data import EngBotDB
 from keyboards import reply
-
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
@@ -15,8 +14,6 @@ router = Router()
 class CommandsFSM(StatesGroup):
     other = State()
     mot = State()
-    words_game = State()
-    used_words = State()
     bonus = State()
 
 
@@ -95,32 +92,3 @@ async def bonus(chat_id, bot, vq, state):
     await asyncio.sleep(1)
     await state.set_state(vq)
     return point
-
-
-@router.message(CommandsFSM.other, F.text.lower() == "word chain game")
-async def words(message: Message, state: FSMContext):
-    from data.materials import voc_dict
-    await state.set_state(CommandsFSM.words_game)
-    word = random.choice(list(voc_dict["mixed"].keys()))
-    await state.update_data(words_game=word)
-    await message.answer(word)
-    await state.update_data(used_words=[word.lower()])
-
-
-@router.message(CommandsFSM.words_game, F.text)
-async def words_game(message: Message, state: FSMContext):
-    from data.materials import voc_dict
-    user_data = await state.get_data()
-    used_words = user_data["used_words"]
-    print(used_words)
-    msg = message.text.lower()
-    if msg not in used_words and user_data["words_game"][-1] == msg[0]:
-        await message.answer("norm")
-        used_words.append(msg)
-    else:
-        await message.answer("bullshit")
-    word = random.choice(list(voc_dict["mixed"].keys()))
-    await message.answer(word)
-    await state.update_data(words_game=word)
-    used_words.append(word.lower())
-    await state.update_data(used_words=used_words)
