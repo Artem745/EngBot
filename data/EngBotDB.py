@@ -3,14 +3,15 @@ import aiosqlite
 
 
 async def DB():
-    async with aiosqlite.connect('EngBotDb.db') as db:
+    async with aiosqlite.connect('data/EngBotDb.db') as db:
         await db.execute('''CREATE TABLE IF NOT EXISTS users (
                 user_id TEXT PRIMARY KEY NOT NULL UNIQUE,
                 username TEXT,
                 first_name TEXT,
                 last_name TEXT,
                 score INTEGER,
-                tr_flag)''')
+                tr_flag TEXT,
+                language TEXT)''')
         await db.commit()
 
 
@@ -71,8 +72,8 @@ async def DB_insert(flag, number, user_id):
 
 
 async def main():
-    pass
-    # await DB()
+    # pass
+    await DB()
 
 
 if __name__ == "__main__":

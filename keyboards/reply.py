@@ -7,8 +7,6 @@ main_kb = ReplyKeyboardMarkup(
         [KeyboardButton(text="Other")]
     ],
     resize_keyboard=True,
-    one_time_keyboard=True,
-    input_field_placeholder="Choose a category",
     selective=True)
 
 cancel_kb = ReplyKeyboardMarkup(
@@ -16,15 +14,13 @@ cancel_kb = ReplyKeyboardMarkup(
         [KeyboardButton(text="❌")]
     ],
     resize_keyboard=True,
-    one_time_keyboard=True,
     selective=True)
 
 other_kb = ReplyKeyboardMarkup(
     keyboard=[
-    [KeyboardButton(text="On/off answers"), KeyboardButton(text="Motivation")],
-    [KeyboardButton(text="Word Chain Game")],
+    [KeyboardButton(text="On/off answers"), KeyboardButton(text="Change language to translate")],
+    [KeyboardButton(text="Word Chain Game"), KeyboardButton(text="Motivation")],
     [KeyboardButton(text="Back")]
     ],
     resize_keyboard=True,
-    one_time_keyboard=True,
     selective=True)
