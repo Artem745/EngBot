@@ -1,26 +1,17 @@
 import asyncio
 import random
-from aiogram import Bot, types, F, Router
-from aiogram.types import Message
+from aiogram import Bot, F, Router
+from aiogram.types import Message, CallbackQuery
 from data import EngBotDB
 from keyboards import reply, inline
 from handlers.EngBotCommands import bonus
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import StatesGroup, State
+from states import CommandsFSM, vFSM
 import csv
 from reverso_context_api import Client
 
-
 router = Router()
-
-
-class vFSM(StatesGroup):
-    voc_diff = State()
-    word_eng = State()
-    win_streak_v = State()
-    words_list = State()
-    lang = State()
 
 
 async def csv_get_word(diff):
@@ -44,8 +35,6 @@ async def csv_get_word(diff):
     return words_list
 
 
-
-
 async def translate_text(word, lang):
     result = list(lang.get_translations(word))
     if len(result) > 10:
@@ -54,25 +43,31 @@ async def translate_text(word, lang):
         return result
 
 
-@router.message(StateFilter(None), F.text.lower().in_(["vocabulary", "/vocabulary"]))
+@router.message(
+    StateFilter(None, CommandsFSM.practice),
+    F.text.lower().in_(["vocabulary", "/vocabulary"]),
+)
 async def voc_diff(message: Message, state: FSMContext):
-    global kb #???
     await message.answer("Let's get started")  # , reply_markup=ReplyKeyboardRemove())
     await asyncio.sleep(0.1)
     kb = await message.answer(
         "First, choose the difficulty🤔", reply_markup=inline.diff_kb
     )
-    
-    l = await EngBotDB.DB_select("language", message.from_user.id)
-    client = Client("en", l)
+    await state.update_data(voc_diff=kb)
+
+    client = Client("en", await EngBotDB.DB_select("language", message.from_user.id))
     await state.update_data(lang=client)
 
 
 @router.callback_query(F.data.in_(["easy", "medium", "hard", "mixed"]))
-async def voc_diff_cb(callback: types.CallbackQuery, bot: Bot, state: FSMContext):
+async def voc_diff_cb(callback: CallbackQuery, bot: Bot, state: FSMContext):
     call_d = callback.data
+    user_data = await state.get_data()
+
     await bot.edit_message_reply_markup(
-        chat_id=kb.chat.id, message_id=kb.message_id, reply_markup=None
+        chat_id=user_data["voc_diff"].chat.id,
+        message_id=user_data["voc_diff"].message_id,
+        reply_markup=None,
     )
     await asyncio.sleep(0.2)
     await callback.message.answer(
@@ -91,15 +86,14 @@ async def voc_diff_cb(callback: types.CallbackQuery, bot: Bot, state: FSMContext
 async def voc(message: Message, state: FSMContext):
 
     msg = message.text.lower()
-    print(msg)
 
     if msg == "❌":
         sc = await EngBotDB.DB_select("score", message.from_user.id)
         await message.answer(f"Your score: <b>{sc}</b>")
         await message.answer(
-            "Successfully stopped, come back soon🤗", reply_markup=reply.main_kb
+            "Successfully stopped, come back soon🤗", reply_markup=reply.practice_kb
         )
-        await state.set_state(state=None)
+        await state.set_state(CommandsFSM.practice)
     else:
         user_data = await state.get_data()
         win_streak = user_data.get("win_streak_v", 0)
@@ -115,8 +109,6 @@ async def voc(message: Message, state: FSMContext):
             ball = 3
 
         translate = await translate_text(word_eng[0], lang)
-        print(translate)
-        print(" ")
 
         if msg in translate:
             await message.answer("Correct✅")
@@ -138,6 +130,5 @@ async def voc(message: Message, state: FSMContext):
             await EngBotDB.DB_score(message.from_user.id, -ball)
 
         word_eng_new = random.choice(user_data["words_list"])
-        print(word_eng_new)
         await message.answer(word_eng_new[0].capitalize())
         await state.update_data(word_eng=word_eng_new)

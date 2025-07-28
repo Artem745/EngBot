@@ -6,18 +6,15 @@ from keyboards import reply, builder
 from handlers.EngBotCommands import bonus
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import StatesGroup, State
 from data.materials import quiz_dict
+from states import CommandsFSM, qFSM
 
 router = Router()
 
 
-class qFSM(StatesGroup):
-    quiz = State()
-    win_streak_q = State()
-
-
-@router.message(StateFilter(None), F.text.lower().in_(["quiz", "/quiz"]))
+@router.message(
+    StateFilter(None, CommandsFSM.practice), F.text.lower().in_(["quiz", "/quiz"])
+)
 async def quiz1(message: Message, state: FSMContext):
     await message.answer(
         "Get ready. You need to choose the correct answer out of 4 possible ones📃"
@@ -35,15 +32,14 @@ async def quiz1(message: Message, state: FSMContext):
 async def quiz(message: Message, state: FSMContext):
 
     msg = message.text.lower()
-    print(msg)
 
     if msg == "❌":
         sc = await EngBotDB.DB_select("score", message.from_user.id)
         await message.answer(f"Your score: <b>{sc}</b>")
         await message.answer(
-            "Successfully stopped, come back soon🤗", reply_markup=reply.main_kb
+            "Successfully stopped, come back soon🤗", reply_markup=reply.practice_kb
         )
-        await state.set_state(state=None)
+        await state.set_state(state=CommandsFSM.practice)
 
     else:
         user_data = await state.get_data()
@@ -54,8 +50,6 @@ async def quiz(message: Message, state: FSMContext):
         tr_flag = await EngBotDB.DB_select("tr_flag", message.from_user.id)
 
         quiz_answer = quiz_dict[quiz_quest][-1]
-        print(quiz_answer)
-        print(' ')
 
         if msg == quiz_answer:
             await message.answer("Correct✅")

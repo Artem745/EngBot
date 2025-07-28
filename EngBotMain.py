@@ -2,9 +2,10 @@ import asyncio
 import logging
 import os
 from aiogram import Bot, Dispatcher
-from handlers import EngBotCommands, EngBotV, EngBotQ, EngBotWords
+from handlers import EngBotCommands, EngBotV, EngBotQ, EngBotWords, EngBotTheory
 from aiogram.client.bot import DefaultBotProperties
 from dotenv import load_dotenv
+from utils import storage
 
 
 async def main():
@@ -12,18 +13,25 @@ async def main():
 
     # session = AiohttpSession(proxy="http://proxy.server:3128")
     bot = Bot(os.getenv("TOKEN"), default=DefaultBotProperties(parse_mode="HTML"))
-    dp = Dispatcher(bot=bot)
-
+    dp = Dispatcher(storage=storage)
     dp.include_routers(
-        EngBotCommands.router, EngBotV.router, EngBotQ.router, EngBotWords.router
+        EngBotCommands.router,
+        EngBotV.router,
+        EngBotQ.router,
+        EngBotWords.router,
+        EngBotTheory.router,
     )
-
     logging.basicConfig(level=logging.INFO)
     logging.info("Bot is enabled")
-    
+
+    await EngBotTheory.init_session()
+    # Warm up connection
+    await EngBotTheory.parse_dict("bot")
+
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
+    await EngBotTheory.close_session()
 
 
 if __name__ == "__main__":
