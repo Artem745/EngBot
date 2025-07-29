@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: engbot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python EngBotMain.py
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
