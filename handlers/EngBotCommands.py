@@ -134,32 +134,36 @@ async def change_language(message: Message, state: FSMContext):
     await state.set_state(CommandsFSM.lang)
 
 
-@router.message(CommandsFSM.lang)
+@router.message(
+    CommandsFSM.lang,
+    F.text.lower().in_(
+        [
+            "arabic",
+            "chinese",
+            "dutch",
+            "french",
+            "german",
+            "hebrew",
+            "italian",
+            "japanese",
+            "korean",
+            "polish",
+            "portuguese",
+            "romanian",
+            "russian",
+            "spanish",
+            "swedish",
+            "turkish",
+            "ukrainian",
+        ]
+    ),
+)
 async def change_language(message: Message, state: FSMContext):
-    language_codes = {
-        "arabic": "ar",
-        "german": "de",
-        "spanish": "es",
-        "french": "fr",
-        "hebrew": "he",
-        "italian": "it",
-        "japanese": "ja",
-        "korean": "ko",
-        "dutch": "nl",
-        "polish": "pl",
-        "portuguese": "pt",
-        "romanian": "ro",
-        "russian": "ru",
-        "swedish": "sv",
-        "turkish": "tr",
-        "ukrainian": "uk",
-        "chinese": "zh",
-    }
     await EngBotDB.DB_insert(
-        "language", language_codes[message.text.lower()], message.from_user.id
+        "language", message.text.lower(), message.from_user.id
     )
     await message.answer(
-        f"Successfully selected {message.text}", reply_markup=reply.practice_settings_kb
+        f"Successfully selected {message.text.lower()}", reply_markup=reply.practice_settings_kb
     )
     await state.set_state(CommandsFSM.practice_settings)
 

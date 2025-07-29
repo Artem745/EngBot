@@ -3,6 +3,7 @@ import logging
 import os
 from aiogram import Bot, Dispatcher
 from handlers import EngBotCommands, EngBotV, EngBotQ, EngBotWords, EngBotTheory
+from utils import init_session, close_session, parse_dict
 from aiogram.client.bot import DefaultBotProperties
 from dotenv import load_dotenv
 from utils import storage
@@ -26,14 +27,14 @@ async def main():
 
     await create_db()
 
-    await EngBotTheory.init_session()
+    await init_session()
     # Warm up connection
-    await EngBotTheory.parse_dict("bot")
+    await parse_dict("bot")
 
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
-    await EngBotTheory.close_session()
+    await close_session()
 
 
 if __name__ == "__main__":

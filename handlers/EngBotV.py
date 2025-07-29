@@ -9,7 +9,7 @@ from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from states import CommandsFSM, vFSM
 import csv
-from reverso_context_api import Client
+from utils import get_translations
 
 router = Router()
 
@@ -35,14 +35,6 @@ async def csv_get_word(diff):
     return words_list
 
 
-async def translate_text(word, lang):
-    result = list(lang.get_translations(word))
-    if len(result) > 10:
-        return result[:10]
-    else:
-        return result
-
-
 @router.message(
     StateFilter(None, CommandsFSM.practice),
     F.text.lower().in_(["vocabulary", "/vocabulary"]),
@@ -54,9 +46,7 @@ async def voc_diff(message: Message, state: FSMContext):
         "First, choose the difficulty🤔", reply_markup=inline.diff_kb
     )
     await state.update_data(voc_diff=kb)
-
-    client = Client("en", await EngBotDB.DB_select("language", message.from_user.id))
-    await state.update_data(lang=client)
+    await state.update_data(lang=await EngBotDB.DB_select("language", message.from_user.id))
 
 
 @router.callback_query(F.data.in_(["easy", "medium", "hard", "mixed"]))
@@ -108,7 +98,7 @@ async def voc(message: Message, state: FSMContext):
         elif word_eng[2] == "c1":
             ball = 3
 
-        translate = await translate_text(word_eng[0], lang)
+        translate = await get_translations(word_eng[0], lang)
 
         if msg in translate:
             await message.answer("Correct✅")
