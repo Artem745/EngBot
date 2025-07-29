@@ -34,43 +34,45 @@ logger = logging.getLogger(__name__)
 async def get_translations(word, language):
     url = f"https://context.reverso.net/translation/english-{language}/{word}"
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "Accept-Language": "en-US,en;q=0.9,ru;q=0.8",
+        "Accept-Encoding": "gzip, deflate, br",
         "DNT": "1",
         "Connection": "keep-alive",
         "Upgrade-Insecure-Requests": "1",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
+        "Cache-Control": "max-age=0",
     }
     timeout = aiohttp.ClientTimeout(total=10)
 
     try:
-        async with aiohttp.ClientSession() as session:  # Create session per request
+        async with aiohttp.ClientSession() as session:
             async with session.get(url, headers=headers, timeout=timeout) as response:
                 logger.info(f"Requesting {url}, status: {response.status}")
                 if response.status == 429:
                     logger.warning("Rate limit hit, retrying after 5 seconds")
                     await asyncio.sleep(5)
-                    return await get_translations(word, language)  # Retry
+                    return await get_translations(word, language)
                 if response.status != 200:
                     logger.error(f"Failed to fetch {url}, status: {response.status}")
-                    return []  # Return empty list on failure
-
+                    return []
                 html = await response.text()
                 soup = BeautifulSoup(html, "lxml")
                 translation_elements = soup.find_all("span", class_="display-term")
-
                 translations = [
                     element.get_text().strip()
                     for element in translation_elements
                     if element.get_text().strip()
                 ]
-
                 if not translations:
                     logger.warning(f"No translations found for '{word}' in {language}")
                 else:
                     logger.info(f"Found translations for '{word}': {translations}")
                 return translations if translations else []
-
     except aiohttp.ClientError as e:
         logger.error(f"Network error for '{word}' in {language}: {str(e)}")
         return []
