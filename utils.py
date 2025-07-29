@@ -2,8 +2,9 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import csv
 from aiogram.fsm.storage.memory import MemoryStorage
 from bs4 import BeautifulSoup
-from aiohttp import ClientSession, TCPConnector
-
+import aiohttp
+import asyncio
+import logging
 
 storage = MemoryStorage()
 
@@ -12,7 +13,7 @@ scheduler = AsyncIOScheduler()
 
 async def init_session():
     global session
-    session = ClientSession(connector=TCPConnector(ssl=False, ttl_dns_cache=300))
+    session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False, ttl_dns_cache=300))
 
 
 async def close_session():
@@ -26,6 +27,10 @@ with open("data/oxford-5000.csv", "r") as file:
     word_list = list(reader)
 
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 async def get_translations(word, language):
     url = f"https://context.reverso.net/translation/english-{language}/{word}"
     headers = {
@@ -36,21 +41,42 @@ async def get_translations(word, language):
         "Connection": "keep-alive",
         "Upgrade-Insecure-Requests": "1",
     }
+    timeout = aiohttp.ClientTimeout(total=10)
 
-    async with session.get(url, headers=headers) as response:
-        if response.status == 200:
-            html = await response.text()
-            soup = BeautifulSoup(html, "lxml")
+    try:
+        async with aiohttp.ClientSession() as session:  # Create session per request
+            async with session.get(url, headers=headers, timeout=timeout) as response:
+                logger.info(f"Requesting {url}, status: {response.status}")
+                if response.status == 429:
+                    logger.warning("Rate limit hit, retrying after 5 seconds")
+                    await asyncio.sleep(5)
+                    return await get_translations(word, language)  # Retry
+                if response.status != 200:
+                    logger.error(f"Failed to fetch {url}, status: {response.status}")
+                    return []  # Return empty list on failure
 
-            translation_elements = soup.find_all("span", class_="display-term")
+                html = await response.text()
+                soup = BeautifulSoup(html, "lxml")
+                translation_elements = soup.find_all("span", class_="display-term")
 
-            translations = [
-                element.get_text().strip()
-                for element in translation_elements
-                if element.get_text().strip()
-            ]
+                translations = [
+                    element.get_text().strip()
+                    for element in translation_elements
+                    if element.get_text().strip()
+                ]
 
-            return translations
+                if not translations:
+                    logger.warning(f"No translations found for '{word}' in {language}")
+                else:
+                    logger.info(f"Found translations for '{word}': {translations}")
+                return translations if translations else []
+
+    except aiohttp.ClientError as e:
+        logger.error(f"Network error for '{word}' in {language}: {str(e)}")
+        return []
+    except Exception as e:
+        logger.error(f"Unexpected error for '{word}' in {language}: {str(e)}")
+        return []
 
 
 async def parse_dict(word):
