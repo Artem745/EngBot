@@ -6,7 +6,7 @@ from handlers import EngBotCommands, EngBotV, EngBotQ, EngBotWords, EngBotTheory
 from aiogram.client.bot import DefaultBotProperties
 from dotenv import load_dotenv
 from utils import storage
-
+from data.EngBotDB import main as create_db
 
 async def main():
     load_dotenv()
@@ -23,6 +23,8 @@ async def main():
     )
     logging.basicConfig(level=logging.INFO)
     logging.info("Bot is enabled")
+
+    await create_db()
 
     await EngBotTheory.init_session()
     # Warm up connection

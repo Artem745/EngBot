@@ -87,8 +87,7 @@ async def DB_insert(flag, number, user_id):
 
 
 async def main():
-    pass
-    # await DB()
+    await DB()
 
 
 if __name__ == "__main__":
