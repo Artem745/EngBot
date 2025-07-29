@@ -12,7 +12,7 @@ async def main():
     load_dotenv()
 
     # session = AiohttpSession(proxy="http://proxy.server:3128")
-    bot = Bot(os.getenv("TOKEN"), default=DefaultBotProperties(parse_mode="HTML"))
+    bot = Bot(os.getenv("BOT_TOKEN"), default=DefaultBotProperties(parse_mode="HTML"))
     dp = Dispatcher(storage=storage)
     dp.include_routers(
         EngBotCommands.router,
