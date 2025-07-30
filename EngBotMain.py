@@ -13,6 +13,7 @@ async def main():
     load_dotenv()
 
     # session = AiohttpSession(proxy="http://proxy.server:3128")
+    PORT = int(os.getenv("PORT", 10000))
     bot = Bot(os.getenv("BOT_TOKEN"), default=DefaultBotProperties(parse_mode="HTML"))
     dp = Dispatcher(storage=storage)
     dp.include_routers(
@@ -32,7 +33,7 @@ async def main():
     await parse_dict("bot")
 
     await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
+    await dp.start_polling(bot, host='0.0.0.0', port=PORT)
 
     await close_session()
 
