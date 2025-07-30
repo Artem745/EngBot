@@ -6,7 +6,6 @@ from aiogram.types import Message
 from data import EngBotDB
 from keyboards import reply, builder
 from aiogram.fsm.context import FSMContext
-from handlers.EngBotTheory import schedule_word
 from states import CommandsFSM
 
 router = Router()
@@ -29,8 +28,8 @@ async def cmd_start(message: Message, state: FSMContext):
         )
 
         send_word_freq = await EngBotDB.DB_select("frequency", message.from_user.id)
-        if send_word_freq:
-            await schedule_word(send_word_freq, message)
+        # if send_word_freq and scheduler.get_job(str(message.from_user.id)) is None:
+            # await schedule_word(send_word_freq, message)
 
         await state.set_state(None)
 
