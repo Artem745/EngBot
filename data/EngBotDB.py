@@ -12,7 +12,7 @@ async def DB():
                 last_name TEXT,
                 score INTEGER,
                 tr_flag TEXT,
-                language TEXT DEFAULT "russian",
+                language TEXT DEFAULT "ru",
                 frequency TEXT)"""
         )
         await db.commit()

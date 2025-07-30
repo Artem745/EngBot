@@ -3,8 +3,7 @@ import csv
 from aiogram.fsm.storage.memory import MemoryStorage
 from bs4 import BeautifulSoup
 import aiohttp
-import asyncio
-import logging
+from deep_translator import GoogleTranslator
 
 storage = MemoryStorage()
 
@@ -27,58 +26,33 @@ with open("data/oxford-5000.csv", "r") as file:
     word_list = list(reader)
 
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 async def get_translations(word, language):
-    url = f"https://context.reverso.net/translation/english-{language}/{word}"
+    url = f"https://glosbe.com/en/{language}/{word}"
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-        "Accept-Language": "en-US,en;q=0.9,ru;q=0.8",
-        "Accept-Encoding": "gzip, deflate, br",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
         "DNT": "1",
         "Connection": "keep-alive",
         "Upgrade-Insecure-Requests": "1",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
-        "Cache-Control": "max-age=0",
     }
-    timeout = aiohttp.ClientTimeout(total=10)
 
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers, timeout=timeout) as response:
-                logger.info(f"Requesting {url}, status: {response.status}")
-                if response.status == 429:
-                    logger.warning("Rate limit hit, retrying after 5 seconds")
-                    await asyncio.sleep(5)
-                    return await get_translations(word, language)
-                if response.status != 200:
-                    logger.error(f"Failed to fetch {url}, status: {response.status}")
-                    return []
-                html = await response.text()
-                soup = BeautifulSoup(html, "lxml")
-                translation_elements = soup.find_all("span", class_="display-term")
-                translations = [
-                    element.get_text().strip()
-                    for element in translation_elements
-                    if element.get_text().strip()
-                ]
-                if not translations:
-                    logger.warning(f"No translations found for '{word}' in {language}")
-                else:
-                    logger.info(f"Found translations for '{word}': {translations}")
-                return translations if translations else []
-    except aiohttp.ClientError as e:
-        logger.error(f"Network error for '{word}' in {language}: {str(e)}")
-        return []
-    except Exception as e:
-        logger.error(f"Unexpected error for '{word}' in {language}: {str(e)}")
-        return []
+    async with session.get(url, headers=headers) as response:
+        if response.status == 200:
+            html = await response.text()
+            soup = BeautifulSoup(html, "lxml")
+
+            translation_elements = soup.find_all("h3", class_="align-top inline translation__item__pharse leading-10 text-primary-700 break-words font-medium text-base cursor-pointer")
+
+            translations = [
+                element.get_text().strip()
+                for element in translation_elements
+                if element.get_text().strip()
+            ]
+            if not translations:
+                fallback = GoogleTranslator(source='en', target=language).translate(word)
+                return [fallback]
+            return translations
 
 
 async def parse_dict(word):
@@ -93,9 +67,9 @@ async def parse_dict(word):
 
     async with session.get(
         f"https://dictionary.cambridge.org/dictionary/english/{word}", headers=headers
-    ) as resp:
-        if resp.status == 200:
-            text = await resp.text()
+    ) as response:
+        if response.status == 200:
+            text = await response.text()
             soup = BeautifulSoup(text, "lxml")
             page = soup.find("div", class_="pr dictionary")
             blocks = page.find_all("div", class_="pr entry-body__el")

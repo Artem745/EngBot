@@ -159,8 +159,28 @@ async def change_language(message: Message, state: FSMContext):
     ),
 )
 async def change_language(message: Message, state: FSMContext):
+    language_codes = {
+    "arabic": "ar",
+    "german": "de",
+    "spanish": "es",
+    "french": "fr",
+    "hebrew": "he",
+    "italian": "it",
+    "japanese": "ja",
+    "korean": "ko",
+    "dutch": "nl",
+    "polish": "pl",
+    "portuguese": "pt",
+    "romanian": "ro",
+    "russian": "ru",
+    "swedish": "sv",
+    "turkish": "tr",
+    "ukrainian": "uk",
+    "chinese": "zh",
+    }
     await EngBotDB.DB_insert(
-        "language", message.text.lower(), message.from_user.id
+        "language", language_codes[message.text.lower()], message.from_user.id
+
     )
     await message.answer(
         f"Successfully selected {message.text.lower()}", reply_markup=reply.practice_settings_kb
