@@ -210,6 +210,14 @@ async def bonus(chat_id, bot, vq, state):
     await state.set_state(vq)
     return point
 
+@router.message(StateFilter(None), Command("save"))
+async def save_data(message: Message):
+    load_dotenv()
+    admin_id = os.getenv("ADMIN_ID")
+    if admin_id:
+        data = await EngBotDB.DB_save_data(admin_id)
+        await message.answer(str(data))
+
 
 @router.message(StateFilter(None), Command("restore"))
 async def restore_data(message: Message, state: FSMContext):

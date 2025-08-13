@@ -37,14 +37,14 @@ async def main():
     )
     logging.basicConfig(level=logging.INFO)
 
-    async def save_data():
-        load_dotenv()
-        admin_id = os.getenv("ADMIN_ID")
-        if admin_id:
-            data = await DB_save_data(admin_id)
-            await bot.send_message(chat_id=admin_id, text=str(data))
+    # async def save_data():
+    #     load_dotenv()
+    #     admin_id = os.getenv("ADMIN_ID")
+    #     if admin_id:
+    #         data = await DB_save_data(admin_id)
+    #         await bot.send_message(chat_id=admin_id, text=str(data))
 
-    dp.shutdown.register(save_data)
+    # dp.shutdown.register(save_data)
 
     await create_db()
     await init_session()
