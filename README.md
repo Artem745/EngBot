@@ -24,7 +24,7 @@ A Telegram bot designed to help users learn and practice English through interac
 1. Clone the repository
 2. Install required dependencies: `pip install -r requirements.txt`
 3. Create a `.env` file and add your Telegram bot token: `TOKEN=your_bot_token`
-4. Create database: `python EngBotMain.py`
+4. Create database (optional, created when the bot is started): `python EngBotMain.py`
 5. Run the bot: `python EngBotMain.py`
 
 ## Contributing

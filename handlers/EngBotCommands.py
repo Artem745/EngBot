@@ -1,12 +1,16 @@
+import ast
 import asyncio
 import random
-from aiogram import F, Router
+from aiogram import F, Router, Bot
 from aiogram.filters import Command, StateFilter
 from aiogram.types import Message
 from data import EngBotDB
+from handlers.EngBotTheory import schedule_word
 from keyboards import reply, builder
 from aiogram.fsm.context import FSMContext
 from states import CommandsFSM
+from dotenv import load_dotenv
+import os
 
 router = Router()
 
@@ -27,9 +31,9 @@ async def cmd_start(message: Message, state: FSMContext):
             message.from_user.last_name,
         )
 
-        send_word_freq = await EngBotDB.DB_select("frequency", message.from_user.id)
+        # send_word_freq = await EngBotDB.DB_select("frequency", message.from_user.id)
         # if send_word_freq and scheduler.get_job(str(message.from_user.id)) is None:
-            # await schedule_word(send_word_freq, message)
+        #     await schedule_word(send_word_freq, message)
 
         await state.set_state(None)
 
@@ -205,6 +209,27 @@ async def bonus(chat_id, bot, vq, state):
     await asyncio.sleep(1)
     await state.set_state(vq)
     return point
+
+
+@router.message(StateFilter(None), Command("restore"))
+async def restore_data(message: Message, state: FSMContext):
+    load_dotenv()
+    admin_id = os.getenv("ADMIN_ID")
+    if admin_id == str(message.from_user.id):
+        await message.answer("Send data")
+        await state.set_state(CommandsFSM.restore_data)
+
+
+@router.message(CommandsFSM.restore_data)
+async def restore_data(message: Message, state: FSMContext, bot: Bot):
+    data = ast.literal_eval(message.text)
+    await EngBotDB.DB_restore_data(data)
+    if data:
+        for user_data in data:
+            if user_data[7]:
+                await schedule_word(freq=user_data[7], user_id=user_data[0], bot=bot)
+    await message.answer("Restored")
+    await state.set_state(None)
 
 
 # @router.message(CommandsFSM.theory, F.text.lower() == "settings")

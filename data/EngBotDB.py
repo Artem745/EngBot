@@ -86,6 +86,23 @@ async def DB_insert(flag, number, user_id):
         await db.commit()
 
 
+async def DB_save_data(user_id):
+    async with aiosqlite.connect("data/EngBotDb.db") as db:
+        a = await db.execute(f"SELECT * FROM users WHERE user_id != ?", (user_id,))
+        a = await a.fetchall()
+        return a
+
+
+async def DB_restore_data(data):
+    async with aiosqlite.connect("data/EngBotDb.db") as db:
+        if data:
+            for user_data in data:
+                await db.execute(
+                    "INSERT INTO users (user_id, username, first_name, last_name, score, tr_flag, language, frequency) VALUES(?,?,?,?,?,?,?,?)",
+                    (user_data[0], user_data[1], user_data[2], user_data[3], user_data[4], user_data[5], user_data[6], user_data[7]),
+                )
+        await db.commit()
+
 async def main():
     await DB()
 

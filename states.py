@@ -2,6 +2,7 @@ from aiogram.fsm.state import StatesGroup, State
 
 
 class CommandsFSM(StatesGroup):
+    restore_data = State()
     practice = State()
     theory = State()
     other = State()

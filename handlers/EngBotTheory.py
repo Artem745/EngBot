@@ -20,40 +20,48 @@ async def new_words(message: Message):
     word = random.choice(word_list)[0]
     await message.answer(await parse_dict(word))
 
+async def new_words_id(user_id, bot):
+    word = random.choice(word_list)[0]
+    await bot.send_message(chat_id=int(user_id), text=await parse_dict(word))
 
-async def schedule_word(freq, message):
+
+async def schedule_word(freq, user_id, message=None, bot=None):
     match freq:
         case "every 30 minutes":
             scheduler.add_job(
-                new_words,
+                new_words if message else new_words_id,
                 "interval",
                 minutes=30,
-                id=str(message.from_user.id),
-                args=(message,),
+                id=user_id,
+                args=(message,) if message else (user_id, bot),
+                replace_existing=True
             )
         case "every 1 hour":
             scheduler.add_job(
-                new_words,
+                new_words if message else new_words_id,
                 "interval",
                 hours=1,
                 id=str(message.from_user.id),
-                args=(message,),
+                args=(message,) if message else (user_id, bot),
+                replace_existing=True
             )
         case "every 3 hours":
             scheduler.add_job(
-                new_words,
+                new_words if message else new_words_id,
                 "interval",
                 hours=3,
                 id=str(message.from_user.id),
-                args=(message,),
+                args=(message,) if message else (user_id, bot),
+                replace_existing=True
             )
         case "every day":
             scheduler.add_job(
-                new_words,
+                new_words if message else new_words_id,
                 "interval",
                 hours=24,
                 id=str(message.from_user.id),
-                args=(message,),
+                args=(message,) if message else (user_id, bot),
+                replace_existing=True
             )
 
     if not scheduler.running:
@@ -90,5 +98,5 @@ async def set_freq(message: Message, state: FSMContext):
         reply_markup=reply.theory_kb,
     )
     await EngBotDB.DB_insert("frequency", message.text.lower(), message.from_user.id)
-    await schedule_word(message.text.lower(), message)
+    await schedule_word(freq=message.text.lower(), user_id=str(message.from_user.id), message=message)
     await state.set_state(CommandsFSM.theory)
